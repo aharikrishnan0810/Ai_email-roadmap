@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study Roadmap - AI Intelligence</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body style="background: #F3F4F6;">
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <a href="/"><span>🚀</span> AI Intelligence</a>
+            </div>
+            <div class="nav-links">
+                <a href="/inbox">All Emails</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <header style="text-align: center; margin-top: 3rem;" class="fade-in">
+            <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Your Study Roadmap</h1>
+            <p style="color: var(--text-muted); font-size: 1.1rem;" id="email-ref">Optimizing prep for...</p>
+        </header>
+
+        <div id="loading" style="text-align: center; padding: 5rem;">
+            <div class="spinner"
+                style="display: inline-block; width: 40px; height: 40px; border-top-color: var(--primary-blue);"></div>
+            <p style="margin-top: 1rem; color: var(--text-muted);">AI is analyzing the placement email and crafting your
+                path...</p>
+        </div>
+
+        <div id="roadmap-container" style="display: none;" class="timeline fade-in">
+            <!-- Timeline items injected here -->
+        </div>
+
+        <div id="error" style="display: none; text-align: center; padding: 5rem; color: #EF4444;">
+            Failed to generate roadmap. Please try again later.
+        </div>
+    </main>
+
+    <script>
+        const emailId = {{ email_id }};
+
+        async function initRoadmap() {
+            try {
+                const res = await fetch(`/roadmap/generate/${emailId}`, { method: 'POST' });
+                if (!res.ok) throw new Error("Failed");
+
+                const data = await res.json();
+                renderRoadmap(data);
+            } catch (err) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        function renderRoadmap(data) {
+            document.getElementById('email-ref').textContent = `Tailored for: ${data.email_subject}`;
+
+            const container = document.getElementById('roadmap-container');
+            // data.roadmap is the object {mode, start_date, roadmap: [...]}
+            // The actual list is data.roadmap.roadmap
+            const roadmapObj = data.roadmap;
+            const items = roadmapObj.roadmap || [];
+
+            if (!Array.isArray(items) || items.length === 0) {
+                container.innerHTML = '<p style="text-align:center; padding: 2rem;">No study steps could be determined for this email.</p>';
+            } else {
+                container.innerHTML = items.map((step, index) => {
+                    const side = index % 2 === 0 ? 'left' : 'right';
+                    // Handle different JSON structures from LLM
+                    const title = step.title || step.step || `Phase ${index + 1}`;
+                    const desc = step.description || step.content || "";
+                    const tasks = step.tasks || step.topics || [];
+                    const time = step.time || step.duration || "";
+
+                    return `
+                <div class="timeline-item ${side}">
+                    <div class="roadmap-card">
+                        <span class="badge badge-placement" style="margin-bottom: 0.5rem; display: inline-block;">${time || 'Week ' + (index + 1)}</span>
+                        <h3>${title}</h3>
+                        <p style="font-size: 0.95rem; color: var(--text-muted);">${desc}</p>
+                        ${tasks.length ? `
+                            <ul class="roadmap-list">
+                                ${tasks.map(t => `<li>${t}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                    </div>
+                </div>
+                `;
+                }).join('');
+
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('roadmap-container').style.display = 'block';
+            }
+        }
+
+        initRoadmap();
+    </script>
+</body>
+
+</html>

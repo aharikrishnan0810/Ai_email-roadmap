@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Details - AI Intelligence</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .detail-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-md);
+            margin-top: 2rem;
+            padding: 2.5rem;
+        }
+
+        .detail-header {
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .detail-subject {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+
+        .detail-meta {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .email-body {
+            font-size: 1rem;
+            color: var(--text-dark);
+            white-space: pre-wrap;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+            padding: 1rem;
+            background: #F9FAFB;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .action-footer {
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <a href="/"><span>🚀</span> AI Intelligence</a>
+            </div>
+            <div class="nav-links">
+                <a href="/inbox">&larr; Back to Inbox</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <div id="loading" style="text-align: center; padding: 5rem;">Loading email details...</div>
+
+        <div id="content" class="fade-in" style="display: none;">
+            <div class="detail-card">
+                <div class="detail-header">
+                    <div class="detail-subject" id="subject"></div>
+                    <div class="detail-meta">
+                        <span id="sender"></span>
+                        <span id="cat-badge"></span>
+                    </div>
+                </div>
+
+                <div class="email-body" id="body"></div>
+
+                <div class="action-footer" id="roadmap-action">
+                    <!-- Button placeholder -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const emailId = {{ email_id }};
+
+        async function loadDetail() {
+            const res = await fetch(`/api/email/${emailId}`);
+            if (!res.ok) {
+                document.getElementById('loading').textContent = "Email not found.";
+                return;
+            }
+            const email = await res.json();
+
+            document.getElementById('subject').textContent = email.subject;
+            document.getElementById('sender').textContent = `From: ${email.sender}`;
+            document.getElementById('body').textContent = email.body;
+            document.getElementById('cat-badge').innerHTML = `<span class="badge badge-${email.category.toLowerCase()}">${email.category}</span>`;
+
+            if (email.category === 'Placement') {
+                document.getElementById('roadmap-action').innerHTML = `
+                    <button onclick="window.location.href='/roadmap/${email.id}'" class="btn-primary" style="background: var(--success-green); padding: 1rem 2rem; font-size: 1.1rem;">
+                        ✨ Generate Study Roadmap
+                    </button>
+                `;
+            } else {
+                document.getElementById('roadmap-action').innerHTML = `
+                    <p style="color: var(--neutral-gray); font-style: italic;">Study roadmap generation is only available for placement-related emails.</p>
+                `;
+            }
+
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('content').style.display = 'block';
+        }
+
+        loadDetail();
+    </script>
+</body>
+
+</html>

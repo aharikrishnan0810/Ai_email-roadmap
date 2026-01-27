@@ -1,0 +1,23 @@
+# Virtual environment
+venv/
+
+# Python cache
+__pycache__/
+
+# Environment & secrets
+.env
+credentials.json
+token.json
+token.pickle
+
+# Generated DB / local data
+emails_db
+
+# Unwanted folder (space in name!)
+interview\ translater/
+
+# Documents not needed
+notes.docx
+io\ for\ genroadmap.docx
+~$*
+git status

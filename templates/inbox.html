@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inbox - AI Intelligence</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        .inbox-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid var(--border-color);
+            margin-top: 2rem;
+            overflow: hidden;
+        }
+
+        .inbox-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .search-bar {
+            background: #F3F4F6;
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 8px;
+            width: 300px;
+            outline-color: var(--primary-blue);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 1rem;
+            padding: 0.5rem 1.5rem;
+            background: #F9FAFB;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .filter-tab {
+            padding: 0.4rem 1rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+        }
+
+        .filter-tab.active {
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+            font-weight: 600;
+        }
+
+        .email-row {
+            padding: 1rem 1.5rem;
+            display: grid;
+            grid-template-columns: 200px 1fr 120px;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .email-row:hover {
+            background-color: #F3F4F6;
+        }
+
+        .email-row.placement {
+            border-left: 4px solid var(--success-green);
+        }
+
+        .email-from {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .email-subject {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .email-category {
+            text-align: right;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <a href="/"><span>🚀</span> AI Intelligence</a>
+            </div>
+            <div class="nav-links">
+                <a href="/">Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <h2 style="margin-top: 2rem;">Placement Intelligence Inbox</h2>
+
+        <div class="inbox-container fade-in">
+            <div class="inbox-header">
+                <input type="text" class="search-bar" placeholder="Search emails...">
+                <div style="color: var(--text-muted); font-size: 0.875rem;" id="email-count">Loading emails...</div>
+            </div>
+            <div class="filter-tabs">
+                <div class="filter-tab active" onclick="filterEmails('All')">All</div>
+                <div class="filter-tab" onclick="filterEmails('Placement')">Placement</div>
+                <div class="filter-tab" onclick="filterEmails('Other')">Other</div>
+            </div>
+            <div id="email-list">
+                <!-- Rows injected here -->
+            </div>
+        </div>
+    </main>
+
+    <script>
+        let allEmails = [];
+
+        async function loadEmails() {
+            const res = await fetch('/emails');
+            const data = await res.json();
+            allEmails = data.emails || [];
+            renderEmails(allEmails);
+        }
+
+        function renderEmails(list) {
+            const container = document.getElementById('email-list');
+            document.getElementById('email-count').textContent = `${list.length} emails found`;
+
+            if (list.length === 0) {
+                container.innerHTML = '<div style="padding: 3rem; text-align: center; color: var(--text-muted);">No emails in this category.</div>';
+                return;
+            }
+
+            container.innerHTML = list.map(email => `
+                <div class="email-row ${email.category.toLowerCase()}" onclick="window.location.href='/email/${email.id}'">
+                    <div class="email-from">${email.from_name || email.sender.split('<')[0]}</div>
+                    <div class="email-subject">${email.subject}</div>
+                    <div class="email-category">
+                        <span class="badge badge-${email.category.toLowerCase()}">${email.category}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterEmails(cat) {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            if (cat === 'All') {
+                renderEmails(allEmails);
+            } else {
+                renderEmails(allEmails.filter(e => e.category === cat));
+            }
+        }
+
+        document.onload = loadEmails();
+    </script>
+</body>
+
+</html>

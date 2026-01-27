@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Placement Email Intelligence</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container nav-content">
+            <div class="logo">
+                <span>🚀</span> AI Intelligence
+            </div>
+            <div class="nav-links">
+                <a href="/inbox">Go to Inbox &rarr;</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container">
+        <section class="hero fade-in">
+            <h1>AI-Based Placement Email <br><span style="color: var(--primary-blue);">Intelligence & Roadmap</span></h1>
+            <p>Automatically classify placement opportunities and generate personalized study roadmaps to ace your upcoming interviews.</p>
+            
+            <button id="fetchBtn" class="btn-primary">
+                <span class="btn-text">Fetch Latest Emails</span>
+                <div class="spinner" id="fetchSpinner"></div>
+            </button>
+            <p id="fetchStatus" style="margin-top: 1rem; font-size: 0.875rem; color: var(--success-green);"></p>
+
+            <div class="dash-grid">
+                <div class="stat-card">
+                    <span class="label">Total Emails</span>
+                    <span class="value" id="stat-total">-</span>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid var(--success-green);">
+                    <span class="label">Placement Emails</span>
+                    <span class="value" id="stat-placement">-</span>
+                </div>
+                <div class="stat-card">
+                    <span class="label">Other Emails</span>
+                    <span class="value" id="stat-other">-</span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="/static/js/app.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            loadStats();
+
+            document.getElementById('fetchBtn').addEventListener('click', async () => {
+                const btn = document.getElementById('fetchBtn');
+                const spinner = document.getElementById('fetchSpinner');
+                const status = document.getElementById('fetchStatus');
+
+                btn.disabled = true;
+                spinner.style.display = 'block';
+                status.textContent = 'Fetching from Gmail...';
+
+                try {
+                    const res = await fetch('/fetch-emails', { method: 'POST' });
+                    const data = await res.json();
+                    if (res.ok) {
+                        status.textContent = `Success! Fetched ${data.count} emails.`;
+                        loadStats();
+                    } else {
+                        status.textContent = 'Error: ' + data.message;
+                        status.style.color = '#EF4444';
+                    }
+                } catch (err) {
+                    status.textContent = 'Failed to connect to backend.';
+                    status.style.color = '#EF4444';
+                } finally {
+                    btn.disabled = false;
+                    spinner.style.display = 'none';
+                }
+            });
+        });
+
+        async function loadStats() {
+            try {
+                const res = await fetch('/emails');
+                const data = await res.json();
+                if (data.emails) {
+                    document.getElementById('stat-total').textContent = data.emails.length;
+                    document.getElementById('stat-placement').textContent = data.emails.filter(e => e.category === 'Placement').length;
+                    document.getElementById('stat-other').textContent = data.emails.filter(e => e.category === 'Other').length;
+                }
+            } catch (err) { console.error(err); }
+        }
+    </script>
+</body>
+</html>
