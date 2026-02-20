@@ -1,0 +1,188 @@
+# Technical Documentation: AI-Based Placement Email Intelligence & Study Roadmap Platform (Advanced Version)
+
+## 1. System Overview
+The **AI-Based Placement Email Intelligence & Study Roadmap Platform** is an enterprise-grade automation solution designed to mitigate information overload for students during campus recruitment cycles. By leveraging the **Google Gemini Pro** Large Language Model (LLM) and the **Gmail API**, the system autonomously identifies, categorizes, and processes placement-related communication into actionable, time-bound study roadmaps.
+
+---
+
+## 2. Multi-Level Architecture Design
+
+### 2.1 High-Level Architecture (System Context)
+The system operates as an intermediary between official communication channels (Gmail) and the student's preparation workflow.
+
+```mermaid
+graph LR
+    A[Gmail Servers] -- OAuth 2.0 / REST API --> B{Platform Backend}
+    B -- Classification Heuristics --> C[(Local Persistence)]
+    B -- Intelligent Prompting --> D[Google Gemini AI]
+    D -- Structured JSON --> B
+    B -- Dynamic UI Rendering --> E[Student Web Portal]
+    E -- User Actions --> B
+```
+
+### 2.2 Low-Level Architecture (Internal Logic)
+The backend is structured into specialized services to ensure separation of concerns.
+
+```mermaid
+graph TD
+    subgraph Frontend_Layer
+        UI[Glassmorphic Web Interface]
+        Client[Vanilla JS State Manager]
+    end
+
+    subgraph Service_Layer
+        Router[Flask App Router]
+        GmailSvc[Gmail Service Wrapper]
+        ClassifySvc[Email Intelligence Module]
+        RoadmapSvc[AI Roadmap Engine]
+    end
+
+    subgraph Data_Layer
+        SQL[SQLite / PostgreSQL Engine]
+        Env[Environment Config Manager]
+    end
+
+    UI <--> Router
+    Router <--> GmailSvc
+    Router <--> ClassifySvc
+    Router <--> RoadmapSvc
+    ClassifySvc <--> SQL
+    RoadmapSvc <--> SQL
+```
+
+---
+
+## 3. Module-Wise Technical Deep-Dive
+
+### 3.1 Email Intelligence Module ([classifier.py](file:///c:/Users/ahari/OneDrive/Desktop/run-2/classifier.py))
+This module implements a tiered heuristic classification algorithm to filter high-priority placement emails from noise.
+
+**Flow Diagram:**
+```mermaid
+flowchart TD
+    Start[Input: Subject + Body] --> Convert[Lower Case Conversion]
+    Convert --> Tier1{Strong Keyword Match?}
+    Tier1 -- Yes --> Placement[Category: Placement]
+    Tier1 -- No --> Tier2{Weak Keyword Match?}
+    Tier2 -- Yes --> Context{Job/Company Context?}
+    Context -- Yes --> Placement
+    Context -- No --> Other[Category: Other]
+    Tier2 -- No --> Tier3{Negative Keyword Match?}
+    Tier3 -- Yes --> Other
+    Tier3 -- No --> Other
+```
+
+**Technical Explanation:**
+The classifier uses three levels of keyword lists:
+*   **Strong**: Immediate indicators (`campus drive`, `job role`, `interview`).
+*   **Weak**: Context-dependent terms (`TPO`, `placement cell`).
+*   **Negative**: Noise filters (`holiday`, `exam`, `fee`).
+The logic priority ensures that even if a "Placement Cell" keyword is found, it will be marked as "Other" unless job-specific context (like `company` or `apply`) is also present.
+
+### 3.2 AI Roadmap Engine ([roadmap.py](file:///c:/Users/ahari/OneDrive/Desktop/run-2/roadmap.py))
+The engine handles the transformation of unstructured text into a structured learning path using Gemini Flash.
+
+**LLM Processing Flow:**
+```mermaid
+stateDiagram-v2
+    [*] --> Extraction: Extract Dates/Company
+    Extraction --> Decision: Proximity Calculation
+    Decision --> DayMode: > 3 Days (Day-wise)
+    Decision --> HourMode: < 3 Days (Hour-wise)
+    DayMode --> PromptBuilding
+    HourMode --> PromptBuilding
+    PromptBuilding --> LLM_Request: Gemini Pro Call
+    LLM_Request --> JSON_Parsing: Strict Format Validation
+    JSON_Parsing --> [*]: Return Structured JSON
+```
+
+**Technical Explanation:**
+*   **Prompt Engineering**: The system uses a "Role-Based" prompt, casting Gemini as a "Senior Placement Mentor". It strictly enforces JSON output through hard rules (No Markdown, No Hallucinations).
+*   **Granularity Control**: A dynamic algorithm calculates [(Target Date - Today)](file:///c:/Users/ahari/OneDrive/Desktop/run-2/app.py#34-37). If the window is narrow, the prompt is modified to generate hour-by-hour slots instead of daily tasks.
+
+---
+
+## 4. Data Specifications
+
+### 4.1 Database Schema Diagram
+The schema is optimized for fast lookups and deduplication based on unique Gmail message IDs.
+
+```mermaid
+erDiagram
+    EMAILS {
+        int id PK
+        string gmail_id UK "Unique Identifier from Google"
+        string sender "From Address"
+        string subject
+        string body "Extracted Text"
+        string category "Placement / Other"
+        timestamp created_at
+    }
+```
+
+### 4.2 API Request-Response Flow
+Typical lifecycle for a "Generate Roadmap" request.
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as Flask Server
+    participant DB as SQLite
+    participant AI as Gemini Pro
+
+    User->>App: POST /api/generate-roadmap/{id}
+    App->>DB: Fetch Email Content by ID
+    DB-->>App: Raw Text Data
+    App->>AI: Send Prompt (Role + Content + Mode)
+    Note over AI: Reasoning & Structuring
+    AI-->>App: JSON Response
+    App->>User: 200 OK (Clean Roadmap Object)
+```
+
+---
+
+## 5. Deployment & Reliability
+
+### 5.1 Error Handling Flow
+The system implements a graceful degradation strategy for API failures.
+
+```mermaid
+flowchart LR
+    Request[API Request] --> Check{Service Up?}
+    Check -- No --> Fallback[Return Cached Data / Mock Mode]
+    Check -- Yes --> Process[Normal Execution]
+    Process --> Validate{Output Valid?}
+    Validate -- No --> Retry[Exponential Backoff Retry]
+    Validate -- Yes --> Response[Return Content]
+```
+
+### 5.2 Deployment Architecture
+Built for scalability, the system can be containerized using Docker for cloud orchestration.
+
+```mermaid
+graph TD
+    subgraph Cloud_Environment
+        LB[Load Balancer]
+        WS[Gunicorn / Flask Workers]
+        RDS[(PostgreSQL / SQLite)]
+    end
+    
+    DNS[Route 53] --> LB
+    LB --> WS
+    WS <--> RDS
+    WS -- External --> Gmail[Google API Console]
+    WS -- External --> Gemini[Google AI Studio]
+```
+
+---
+
+## 6. Technical Summary
+| Component | Technology | Role |
+| :--- | :--- | :--- |
+| **Backend** | Flask (Python) | Core Orchestration |
+| **AI** | Gemini Flash 1.5 | Reasoning & JSON Generation |
+| **Auth** | OAuth 2.0 | Secure Email Access |
+| **Frontend** | CSS Glassmorphism | UX / UI |
+| **Database** | SQLite | Local Storage |
+
+This documentation serves as a comprehensive technical reference for the implementation and future scaling of the project.
