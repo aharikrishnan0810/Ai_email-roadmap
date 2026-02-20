@@ -47,12 +47,7 @@ The AI-powered system converts emails into **clear, structured, step-by-step roa
 
 ---
 
-## ⚙️ Installation & Setup
 
-1. Clone the repository:
-```bash
-git clone https://github.com/aharikrishnan0810/Ai_email-roadmap.git
-cd Ai_email-roadmap
 
 # Technical Information: AI-Based Placement Email Intelligence & Study Roadmap Platform (Advanced Version)
 
@@ -242,4 +237,9 @@ graph TD
 | **Database** | SQLite | Local Storage |
 
 
+## ⚙️ Installation & Setup
 
+1. Clone the repository:
+```bash
+git clone https://github.com/aharikrishnan0810/Ai_email-roadmap.git
+cd Ai_email-roadmap
