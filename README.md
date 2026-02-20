@@ -4,6 +4,9 @@ An intelligent web application that reads user emails, understands their intent 
 
 ---
 
+*Built by  ❤️  HARI KRISHNAN -A RAMCO INSTITUTE OF TECHNOLOGY -using FastAPI, Google Gemini AI,OAuth 2.0 ,SQLite, and CSS Glassmorphism.*
+
+
 ## 🚀 Project Overview
 
 This project helps users extract meaningful action plans from emails. Many users describe goals, tasks, or learning needs through emails, which are often unstructured.  
