@@ -34,18 +34,18 @@ The AI-powered system converts emails into **clear, structured, step-by-step roa
 
 ---
 
-## 📸 Screenshots
+##  Screenshots
 
-** Fetch Email**  
+**Fetch Email**  
 ![Fetch Email](screenshots/fetch_email.png)
 
-** Inbox View**  
+**Inbox View**  
 ![Inbox](screenshots/inbox.png)
 
-** Email Body View**  
+**Email Body View**  
 ![Email Body](screenshots/mail_body.png)
 
-** Generated Roadmap**  
+**Generated Roadmap**  
 ![Roadmap](screenshots/roadmap.png)
 
 ---
